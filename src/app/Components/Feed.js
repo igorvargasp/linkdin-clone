@@ -7,15 +7,17 @@ import EventNoteIcon from '@material-ui/icons/EventNote'
 import CalendarViewDayIcon from '@material-ui/icons/CalendarViewDay'
 import InputOption from './InputOption.js'
 import Post from './Post'
-import { db, auth, collection, onSnapshot , doc, addDoc} from '../firebase'
+import { db, auth, collection, onSnapshot , query, addDoc, orderBy} from '../firebase'
 import firebase from 'firebase/firestore'
-
+import _map from 'lodash/map'
 
 function Feed() {
-
+    const user = useSelector(selectUser);
     const [input, setInput] = useState('');
 
     const [posts, setPosts] = useState([]);
+    var cont = 0;
+    
     
     useEffect(() =>{   
 
@@ -27,17 +29,21 @@ function Feed() {
                 })
             })          
             })
-            console.log(docRef)
+
+            const q = query(docRef, orderBy("timestamp","desc"));
+            
+            setInput('')
+           
         },[]);
         
 
     const sendPost = (e) => {
         e.preventDefault();
         addDoc(collection(db,"posts"),{
-            name: 'igor',
-            description: 'this is a test',
+            name: user.displayName,
+            description: user.email,
             message: input,
-            photoUrl: '',
+            photoUrl: user.photoUrl,
             timeStamp: new Date().toISOString()
         })
      
@@ -62,20 +68,22 @@ function Feed() {
                     <InputOption Icon={CalendarViewDayIcon}  title="Write article" color="#7FC15E"/>
                 </div>
             </div>
+            <FlipMove>
             {
-            posts.map(({id, data:{ name, description, message, photoUrl}}) => (
-                <Post
-                   key={id}
-                   name={name}
-                   description={description}
-                   message={message}
-                   photoUrl={photoUrl}
-                />
                
-            ))
+            Object.entries(posts).map(function (key, value) {
+                return <Post 
+                    key={posts.id}
+                    name={posts.data.name}
+                    description={posts.data.description}
+                    photoUrl={posts.data.photoUrl}
+                    message={posts.data.message}
+                />
+            })
+             
            
             }
-           
+            </FlipMove>
         </div>
     )
 }
